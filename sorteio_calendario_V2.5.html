@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☕ Escala da Cafeteira</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6F4E37;
+            --primary-hover: #5C4033;
+            --secondary: #A67B5B;
+            --secondary-hover: #8D6346;
+            --success: #2e7d32;
+            --success-hover: #1b5e20;
+            --danger: #c62828;
+            --danger-hover: #b71c1c;
+            --bg: #F9F6F0;
+            --surface: #ffffff;
+            --text-main: #3E2723;
+            --text-muted: #795548;
+            --border: #D7CCC8;
+            --warning-bg: #FFF3E0;
+            --warning-text: #E65100;
+            --warning-border: #FFCC80;
+            --radius: 12px;
+            --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            padding: 3rem 1rem;
+            line-height: 1.5;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 2.5rem;
+            border-top: 8px solid var(--primary);
+        }
+
+        .header-title {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 { font-size: 1.75rem; color: var(--primary); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        h2 { font-size: 1.25rem; font-weight: 600; color: var(--primary); margin-bottom: 1rem;}
+        p.subtitle { text-align: center; color: var(--text-muted); margin-top: -5px; font-size: 0.95rem; }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            background: var(--bg);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        label { font-weight: 600; font-size: 0.875rem; color: var(--text-main); }
+        
+        input, select {
+            padding: 0.85rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s;
+            background: var(--surface);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+        }
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(111, 78, 55, 0.15); }
+
+        .btn {
+            padding: 0.85rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            border-radius: 6px;
+        }
+        .btn:disabled { opacity: 0.7; cursor: not-allowed; }
+        .btn:active:not(:disabled) { transform: scale(0.98); }
+        
+        .btn-primary { background: var(--primary); }
+        .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+        .btn-success { background: var(--success); }
+        .btn-success:hover { background: var(--success-hover); }
+        .btn-danger { background: var(--danger); }
+        .btn-danger:hover { background: var(--danger-hover); }
+        .btn-secondary { background: var(--secondary); }
+        .btn-secondary:hover { background: var(--secondary-hover); }
+
+        .card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .flex-row { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; }
+        .flex-row input { flex: 1; }
+
+        #lista-participantes { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+        .participante-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.85rem 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: grab;
+            transition: box-shadow 0.2s, border-color 0.2s;
+        }
+        .participante-item:hover { border-color: var(--secondary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .participante-item.dragging { opacity: 0.5; background: var(--bg); cursor: grabbing; }
+        
+        .drag-handle { color: var(--border); margin-right: 10px; font-weight: bold; cursor: inherit; }
+        
+        .actions { display: flex; gap: 0.5rem; }
+        .actions button {
+            padding: 0.4rem 0.75rem;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            color: white;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        .btn-sm-ausente { background: #f59e0b; color: #fff; }
+        .btn-sm-ausente:hover { background: #d97706; }
+        .btn-sm-excluir { background: var(--danger); color: white; border: none !important; }
+        .btn-sm-excluir:hover { background: var(--danger-hover); }
+
+        .resultado-wrapper {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            margin-top: 2rem;
+            display: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 1rem;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) { background-color: var(--bg); }
+        th { 
+            background: var(--primary); 
+            color: white; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            font-size: 0.85rem; 
+            letter-spacing: 0.05em; 
+        }
+
+        .badge-danger {
+            background: #FEE2E2;
+            color: #B91C1C;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .feriados-box {
+            background-color: var(--warning-bg);
+            border-left: 4px solid var(--warning-border);
+            color: var(--warning-text);
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 1.5rem;
+        }
+        .feriados-box ul { margin-top: 0.5rem; margin-left: 1.5rem; }
+        .feriados-box li { font-size: 0.9rem; margin-bottom: 0.25rem; }
+        
+        dialog {
+            margin: auto;
+            padding: 2rem;
+            border: none;
+            border-radius: var(--radius);
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+            max-width: 400px;
+            width: 90%;
+            font-family: 'Inter', sans-serif;
+        }
+        dialog::backdrop { background: rgba(62, 39, 35, 0.6); backdrop-filter: blur(3px); }
+
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 9999;
+        }
+        .toast {
+            background: var(--text-main);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            animation: slideIn 0.3s ease-out;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .loader {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid white;
+            width: 18px;
+            height: 18px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+        .btn.loading .loader { display: block; }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* REGRAS DE ESTILIZAÇÃO PARA IMAGEM EXPORTADA VIA HTML2CANVAS */
+        .export-compact {
+            padding: 1rem !important;
+            border: none !important;
+        }
+        .export-compact .print-title { font-size: 1.3rem !important; margin-bottom: 12px !important; }
+        .export-compact .print-title span { font-size: 0.9rem !important; }
+        .export-compact .feriados-box { padding: 0.6rem 1rem !important; margin-bottom: 12px !important; }
+        .export-compact .feriados-box li { font-size: 0.8rem !important; margin-bottom: 2px !important; }
+        .export-compact th, .export-compact td { padding: 0.4rem 0.6rem !important; font-size: 0.85rem !important; }
+        
+        /* REGRAS COMPACTAS EXCLUSIVAS DE IMPRESSÃO (PDF) */
+        @media print {
+            @page { 
+                size: A4; 
+                margin: 5mm 8mm; 
+            }
+            body {
+                background: white;
+                padding: 0; margin: 0;
+                font-size: 10pt; 
+            }
+            .container {
+                box-shadow: none; border: none;
+                max-width: 100%; padding: 0; margin: 0;
+            }
+            .no-print { display: none !important; }
+            
+            .resultado-wrapper {
+                border: none; padding: 0; margin-top: 0; display: block !important;
+            }
+            
+            h2.print-title { 
+                font-size: 14pt; 
+                text-align: center; 
+                margin-bottom: 8px; 
+                color: black; 
+                border-bottom: 1px solid #ccc; 
+                padding-bottom: 6px; 
+                line-height: 1.2;
+            }
+            h2.print-title span { font-size: 10pt !important; }
+            
+            .feriados-box {
+                padding: 6px 10px;
+                margin-bottom: 10px;
+                border: 1px solid #ddd;
+                background: #f9f9f9 !important;
+            }
+            .feriados-box strong { font-size: 9pt; }
+            .feriados-box ul { margin-top: 3px; }
+            .feriados-box li { font-size: 8.5pt; margin-bottom: 1px; color: #333; }
+            
+            table {
+                width: 100%; border-collapse: collapse; margin-top: 5px; margin-bottom: 5px;
+            }
+            th, td {
+                padding: 4px 6px !important; 
+                border: 1px solid #bbb !important;
+                color: black !important;
+                font-size: 9pt;
+            }
+            th {
+                background-color: #eee !important;
+                color: black !important;
+                font-size: 8.5pt;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            tr { page-break-inside: avoid; background-color: transparent !important; }
+            .badge-danger { border: 1px solid black; color: black; background: white; padding: 2px 4px; font-size: 8pt;}
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-title no-print">
+            <h1>☕ Escala da Cafeteira</h1>
+            <p class="subtitle">Gerador de revezamento para a lavagem diária</p>
+        </div>
+
+        <div class="controls-grid no-print">
+            <div class="input-group">
+                <label for="mes">Mês de Referência</label>
+                <select id="mes">
+                    <option value="0">Janeiro</option><option value="1">Fevereiro</option>
+                    <option value="2">Março</option><option value="3">Abril</option>
+                    <option value="4">Maio</option><option value="5">Junho</option>
+                    <option value="6">Julho</option><option value="7">Agosto</option>
+                    <option value="8">Setembro</option><option value="9">Outubro</option>
+                    <option value="10">Novembro</option><option value="11">Dezembro</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="ano">Ano</label>
+                <input type="number" id="ano" value="2026">
+            </div>
+        </div>
+
+        <div class="card no-print">
+            <h2>👥 Equipe e Ordem de Revezamento</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+                Adicione as pessoas abaixo. Arraste (⋮⋮) os nomes para definir a ordem fixa do ciclo.
+            </p>
+            <div class="flex-row">
+                <input type="text" id="participante-input" placeholder="Digite o nome do colaborador..." autocomplete="off">
+                <button class="btn btn-success" onclick="app.adicionarParticipante()">➕ Adicionar</button>
+                <button class="btn btn-secondary" onclick="app.limparDados()" title="Apagar Todos">🗑️</button>
+            </div>
+            <ul id="lista-participantes"></ul>
+        </div>
+
+        <div class="flex-row no-print" style="justify-content: center; gap: 1rem; margin-bottom: 1rem;">
+            <button id="btn-gerar" class="btn btn-primary" onclick="app.gerarCalendario()">
+                <div class="loader"></div>
+                <span>🗓️ Gerar Escala</span>
+            </button>
+            <button class="btn btn-secondary" onclick="app.copiarComoImagem()">
+                <span>📋 Copiar Imagem</span>
+            </button>
+            <button class="btn" style="background: var(--text-main); color: white;" onclick="window.print()">
+                <span>🖨️ Imprimir PDF</span>
+            </button>
+        </div>
+
+        <div id="resultado-escala" class="resultado-wrapper"></div>
+    </div>
+
+    <dialog id="modal-ausencia">
+        <h2>Férias / Atestado</h2>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Defina os dias em que <strong id="nome-ausente" style="color: var(--primary);"></strong> não poderá lavar a cafeteira.</p>
+        
+        <div class="input-group" style="margin-bottom: 1rem;">
+            <label>Data Início</label>
+            <input type="date" id="ausencia-inicio">
+        </div>
+        <div class="input-group" style="margin-bottom: 2rem;">
+            <label>Data Fim</label>
+            <input type="date" id="ausencia-fim">
+        </div>
+        <div class="flex-row" style="margin-bottom: 0;">
+            <button class="btn btn-danger" style="flex:1" onclick="app.fecharModal()">Cancelar</button>
+            <button class="btn btn-success" style="flex:1" onclick="app.salvarAusencia()">Salvar</button>
+        </div>
+    </dialog>
+
+    <div id="toast-container"></div>
+
+    <script>
+        const app = (() => {
+            let state = { participantes: [], ausencias: {}, diasExcluidos: [], ausenciasEfetivas: {} };
+            let participanteSelecionado = null;
+
+            function carregarEstado() {
+                const salvo = localStorage.getItem('escala_state');
+                if (salvo) {
+                    state = JSON.parse(salvo);
+                    if (!state.diasExcluidos) state.diasExcluidos = [];
+                    if (!state.ausenciasEfetivas) state.ausenciasEfetivas = {};
+                }
+                
+                const dataAtual = new Date();
+                document.getElementById('mes').value = dataAtual.getMonth();
+                document.getElementById('ano').value = dataAtual.getFullYear();
+                
+                renderizarLista();
+            }
+
+            function salvarEstado() {
+                localStorage.setItem('escala_state', JSON.stringify(state));
+            }
+
+            function showToast(msg) {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.innerHTML = `ℹ️ ${msg}`;
+                container.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transition = 'opacity 0.3s';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3500);
+            }
+
+            function formatarDataBR(dataISO) {
+                const [a, m, d] = dataISO.split('-');
+                return `${d}/${m}/${a}`;
+            }
+
+            function obterDiaDaSemana(dataISO) {
+                const data = new Date(dataISO + 'T12:00:00');
+                const formatter = new Intl.DateTimeFormat('pt-BR', { weekday: 'long' });
+                const diaStr = formatter.format(data);
+                return diaStr.charAt(0).toUpperCase() + diaStr.slice(1);
+            }
+
+            async function buscarFeriados(ano) {
+                try {
+                    const res = await fetch(`https://brasilapi.com.br/api/feriados/v1/${ano}`);
+                    if (!res.ok) throw new Error();
+                    return await res.json(); 
+                } catch (error) {
+                    showToast('Aviso: Falha ao buscar feriados da API. Ignorando apenas finais de semana.');
+                    return [];
+                }
+            }
+
+            function getDiasUteis(ano, mes, feriadosDoMesISO) {
+                const dias = [];
+                const data = new Date(ano, mes, 1);
+                while (data.getMonth() === mes) {
+                    const diaSemana = data.getDay();
+                    const isoStr = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')}`;
+                    
+                    const isFimDeSemana = diaSemana === 0 || diaSemana === 6;
+                    const isFeriado = feriadosDoMesISO.includes(isoStr);
+
+                    if (!isFimDeSemana && !isFeriado) {
+                        dias.push(isoStr);
+                    }
+                    data.setDate(data.getDate() + 1);
+                }
+                return dias;
+            }
+
+            function gerarArrayDatas(inicioISO, fimISO) {
+                const datas = [];
+                let atual = new Date(inicioISO + 'T12:00:00'); 
+                const fim = new Date(fimISO + 'T12:00:00');
+                
+                while (atual <= fim) {
+                    const isoStr = `${atual.getFullYear()}-${String(atual.getMonth() + 1).padStart(2, '0')}-${String(atual.getDate()).padStart(2, '0')}`;
+                    datas.push(isoStr);
+                    atual.setDate(atual.getDate() + 1);
+                }
+                return datas;
+            }
+
+            function adicionarParticipante() {
+                const input = document.getElementById('participante-input');
+                const nome = input.value.trim();
+                
+                if (!nome) return showToast('Digite um nome válido.');
+                if (state.participantes.includes(nome)) return showToast('Participante já existe na lista.');
+
+                state.participantes.push(nome);
+                state.ausencias[nome] = [];
+                input.value = '';
+                
+                salvarEstado();
+                renderizarLista();
+            }
+
+            function removerParticipante(nome) {
+                state.participantes = state.participantes.filter(p => p !== nome);
+                delete state.ausencias[nome];
+                if (state.ausenciasEfetivas) delete state.ausenciasEfetivas[nome];
+                salvarEstado();
+                renderizarLista();
+            }
+
+            function limparDados() {
+                if(confirm("Tem certeza que deseja apagar todos os dados da equipe e dias excluídos?")) {
+                    state = { participantes: [], ausencias: {}, diasExcluidos: [], ausenciasEfetivas: {} };
+                    const wrapper = document.getElementById('resultado-escala');
+                    wrapper.innerHTML = '';
+                    wrapper.style.display = 'none';
+                    salvarEstado();
+                    renderizarLista();
+                    showToast('Todos os dados foram limpos.');
+                }
+            }
+
+            function abrirModalAusencia(nome) {
+                participanteSelecionado = nome;
+                document.getElementById('nome-ausente').textContent = nome;
+                document.getElementById('ausencia-inicio').value = '';
+                document.getElementById('ausencia-fim').value = '';
+                document.getElementById('modal-ausencia').showModal();
+            }
+
+            function fecharModal() {
+                document.getElementById('modal-ausencia').close();
+                participanteSelecionado = null;
+            }
+
+            function salvarAusencia() {
+                const inicio = document.getElementById('ausencia-inicio').value;
+                const fim = document.getElementById('ausencia-fim').value;
+
+                if (!inicio || !fim) return showToast('Preencha as duas datas.');
+                if (inicio > fim) return showToast('A data inicial não pode ser maior que a final.');
+
+                const novasDatas = gerarArrayDatas(inicio, fim);
+                const setAusencias = new Set([...state.ausencias[participanteSelecionado], ...novasDatas]);
+                state.ausencias[participanteSelecionado] = Array.from(setAusencias).sort();
+                
+                if (state.ausenciasEfetivas && state.ausenciasEfetivas[participanteSelecionado]) {
+                    delete state.ausenciasEfetivas[participanteSelecionado];
+                }
+                
+                salvarEstado();
+                renderizarLista();
+                fecharModal();
+                showToast(`Ausência salva para ${participanteSelecionado}. Gera a escala para calcular.`);
+            }
+
+            function removerDiaDaEscala(dataISO) {
+                if (!state.diasExcluidos) state.diasExcluidos = [];
+                if (!state.diasExcluidos.includes(dataISO)) {
+                    state.diasExcluidos.push(dataISO);
+                    salvarEstado();
+                    showToast(`Dia ${formatarDataBR(dataISO)} removido da escala.`);
+                    gerarCalendario(); 
+                }
+            }
+
+            function restaurarDiasExcluidos() {
+                if(confirm("Deseja restaurar os dias excluídos manualmente?")) {
+                    state.diasExcluidos = [];
+                    salvarEstado();
+                    showToast('Dias restaurados.');
+                    gerarCalendario();
+                }
+            }
+
+            let dragIndex = null;
+            function dragStart(e, index) { dragIndex = index; e.currentTarget.classList.add('dragging'); }
+            function dragOver(e) { e.preventDefault(); }
+            function drop(e, dropIndex) {
+                e.preventDefault();
+                const draggedItem = state.participantes[dragIndex];
+                state.participantes.splice(dragIndex, 1);
+                state.participantes.splice(dropIndex, 0, draggedItem);
+                salvarEstado();
+                renderizarLista();
+            }
+
+            function renderizarLista() {
+                const ul = document.getElementById('lista-participantes');
+                ul.innerHTML = '';
+
+                if (state.participantes.length === 0) {
+                    ul.innerHTML = `<li style="color: var(--text-muted); text-align: center; padding: 1rem; border: 1px dashed var(--border); border-radius: 8px;">Nenhum participante adicionado.</li>`;
+                    return;
+                }
+
+                state.participantes.forEach((nome, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'participante-item';
+                    li.draggable = true;
+                    li.ondragstart = (e) => dragStart(e, index);
+                    li.ondragover = dragOver;
+                    li.ondrop = (e) => drop(e, index);
+                    li.ondragend = (e) => e.currentTarget.classList.remove('dragging');
+
+                    const infoDiv = document.createElement('div');
+                    infoDiv.style.display = 'flex';
+                    infoDiv.style.alignItems = 'center';
+                    
+                    let htmlInfo = `<span class="drag-handle">⋮⋮</span>
+                                    <div>
+                                        <strong style="color: var(--primary);">${index + 1}. ${nome}</strong>`;
+                    
+                    const efetivas = state.ausenciasEfetivas && state.ausenciasEfetivas[nome] ? state.ausenciasEfetivas[nome] : [];
+                    
+                    if (efetivas.length > 0) {
+                        htmlInfo += `<div style="font-size: 0.75rem; color: var(--danger); margin-top: 2px;">
+                                        Dias pulados na escala: ${efetivas.map(formatarDataBR).join(', ')}
+                                     </div>`;
+                    } else if (state.ausencias[nome] && state.ausencias[nome].length > 0) {
+                        htmlInfo += `<div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                                        Férias/Atestado programado.
+                                     </div>`;
+                    }
+                    htmlInfo += `</div>`;
+                    infoDiv.innerHTML = htmlInfo;
+
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.className = 'actions';
+                    actionsDiv.innerHTML = `
+                        <button class="btn-sm-ausente" onclick="app.abrirModalAusencia('${nome}')" title="Registrar Férias/Ausência">📅 Férias</button>
+                        <button class="btn-sm-excluir" onclick="app.removerParticipante('${nome}')" title="Excluir Participante">✕</button>
+                    `;
+
+                    li.appendChild(infoDiv);
+                    li.appendChild(actionsDiv);
+                    ul.appendChild(li);
+                });
+            }
+
+            function setBtnLoading(isLoading) {
+                const btn = document.getElementById('btn-gerar');
+                if(isLoading) {
+                    btn.classList.add('loading');
+                    btn.disabled = true;
+                    btn.querySelector('span').textContent = 'Mapeando Feriados...';
+                } else {
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                    btn.querySelector('span').textContent = '🗓️ Gerar Escala';
+                }
+            }
+
+            async function gerarCalendario() {
+                if (state.participantes.length === 0) {
+                    return showToast('Adicione pelo menos um participante para gerar a escala.');
+                }
+
+                setBtnLoading(true);
+
+                // Zera as ausências efetivas para recalcular no novo mês gerado
+                state.ausenciasEfetivas = {};
+
+                const mes = parseInt(document.getElementById('mes').value);
+                const ano = parseInt(document.getElementById('ano').value);
+                
+                const todosFeriados = await buscarFeriados(ano);
+                const feriadosDoMes = todosFeriados.filter(f => {
+                    const dataObj = new Date(f.date + 'T12:00:00');
+                    return dataObj.getMonth() === mes;
+                });
+
+                const feriadosISO = feriadosDoMes.map(f => f.date);
+                
+                let diasUteis = getDiasUteis(ano, mes, feriadosISO);
+                if (state.diasExcluidos && state.diasExcluidos.length > 0) {
+                    diasUteis = diasUteis.filter(d => !state.diasExcluidos.includes(d));
+                }
+                
+                const escala = [];
+                let pIndex = 0; 
+
+                diasUteis.forEach(dia => {
+                    let alocado = false;
+                    let tentativas = 0;
+
+                    while (tentativas < state.participantes.length) {
+                        const candidato = state.participantes[pIndex];
+                        const ausente = state.ausencias[candidato].includes(dia);
+
+                        if (!ausente) {
+                            escala.push({ data: dia, pessoa: candidato, diaSemana: obterDiaDaSemana(dia) });
+                            alocado = true;
+                            pIndex = (pIndex + 1) % state.participantes.length; 
+                            break;
+                        } else {
+                            if (!state.ausenciasEfetivas[candidato]) state.ausenciasEfetivas[candidato] = [];
+                            if (!state.ausenciasEfetivas[candidato].includes(dia)) {
+                                state.ausenciasEfetivas[candidato].push(dia);
+                            }
+                            
+                            pIndex = (pIndex + 1) % state.participantes.length;
+                        }
+                        tentativas++;
+                    }
+
+                    if (!alocado) {
+                        escala.push({ data: dia, pessoa: "SEM COBERTURA", diaSemana: obterDiaDaSemana(dia) });
+                    }
+                });
+
+                salvarEstado(); 
+                renderizarLista(); 
+                renderizarTabela(escala, feriadosDoMes, mes, ano);
+                setBtnLoading(false);
+            }
+
+            function renderizarTabela(escala, feriadosDoMes, mes, ano) {
+                const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+                const container = document.getElementById('resultado-escala');
+                
+                container.style.display = 'block';
+                
+                let html = `<h2 class="print-title">☕ Escala de Limpeza da Cafeteira<br><span style="font-weight:normal; color: var(--text-muted);">${meses[mes]} de ${ano}</span></h2>`;
+
+                if (feriadosDoMes.length > 0) {
+                    html += `<div class="feriados-box">
+                                <strong>Feriados nacionais:</strong>
+                                <ul>`;
+                    feriadosDoMes.forEach(f => {
+                        html += `<li>${formatarDataBR(f.date)} (${obterDiaDaSemana(f.date)}) - ${f.name}</li>`;
+                    });
+                    html += `   </ul>
+                             </div>`;
+                }
+
+                if (state.diasExcluidos && state.diasExcluidos.length > 0) {
+                    const excluidosMes = state.diasExcluidos.filter(d => {
+                        const dateObj = new Date(d + 'T12:00:00');
+                        return dateObj.getMonth() === mes && dateObj.getFullYear() === ano;
+                    });
+                    
+                    if (excluidosMes.length > 0) {
+                        html += `<div class="feriados-box" style="background: #f1f5f9; border-left-color: #94a3b8; color: #475569;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                        <strong>Dias facultativos/removidos manualmente:</strong>
+                                        <button class="btn btn-secondary btn-sm no-print" onclick="app.restaurarDiasExcluidos()">Restaurar</button>
+                                    </div>
+                                    <ul>`;
+                        excluidosMes.forEach(d => {
+                            html += `<li>${formatarDataBR(d)} (${obterDiaDaSemana(d)})</li>`;
+                        });
+                        html += `   </ul>
+                                 </div>`;
+                    }
+                }
+
+                html += `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Dia da Semana</th>
+                                <th>Responsável</th>
+                                <th class="no-print" style="width: 50px; text-align:center;">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                if (escala.length === 0) {
+                    html += `<tr><td colspan="4" style="text-align:center;">Nenhum dia útil encontrado ou todos foram excluídos.</td></tr>`;
+                }
+
+                escala.forEach(item => {
+                    const isSemCobertura = item.pessoa.includes("SEM COBERTURA");
+                    const colorStyle = isSemCobertura ? 'background-color: #fef2f2;' : '';
+                    const labelPessoa = isSemCobertura ? '<span class="badge-danger">⚠️ Sem Cobertura</span>' : `<strong>${item.pessoa}</strong>`;
+                    
+                    html += `
+                        <tr style="${colorStyle}">
+                            <td style="font-weight: 500; color: var(--text-main);">${formatarDataBR(item.data)}</td>
+                            <td style="color: var(--text-muted);">${item.diaSemana}</td>
+                            <td style="color: var(--primary);">${labelPessoa}</td>
+                            <td class="no-print" style="text-align: center;">
+                                <button class="btn-sm-excluir" style="padding: 4px 8px; border-radius: 4px; cursor: pointer;" onclick="app.removerDiaDaEscala('${item.data}')" title="Tirar este dia da escala (Ponto Facultativo)">✕</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += `</tbody></table>`;
+
+                // --- NOVO: RODAPÉ DE AUSÊNCIAS EFETIVAS ---
+                let temAusenciaNoMes = false;
+                let listaAusenciasHtml = '';
+
+                if (state.ausenciasEfetivas) {
+                    for (const [pessoa, datas] of Object.entries(state.ausenciasEfetivas)) {
+                        const datasNoMes = datas.filter(d => {
+                            const dateObj = new Date(d + 'T12:00:00');
+                            return dateObj.getMonth() === mes && dateObj.getFullYear() === ano;
+                        });
+
+                        if (datasNoMes.length > 0) {
+                            temAusenciaNoMes = true;
+                            const datasFormatadas = datasNoMes.map(d => `${formatarDataBR(d)} (${obterDiaDaSemana(d)})`).join(', ');
+                            listaAusenciasHtml += `<li><strong>${pessoa}:</strong> ${datasFormatadas}</li>`;
+                        }
+                    }
+                }
+
+                if (temAusenciaNoMes) {
+                    html += `<div class="feriados-box" style="margin-top: 1rem; margin-bottom: 0; background: #fff1f2; border-left-color: #f43f5e; color: #881337;">
+                                <div style="margin-bottom: 5px;">
+                                    <strong>Colaboradores ausentes (dias pulados na escala):</strong>
+                                </div>
+                                <ul>
+                                    ${listaAusenciasHtml}
+                                </ul>
+                             </div>`;
+                }
+                // ------------------------------------------
+                         
+                container.innerHTML = html;
+            }
+
+            async function copiarComoImagem() {
+                const elemento = document.getElementById('resultado-escala');
+                if (!elemento || elemento.style.display === 'none' || elemento.innerHTML === '') {
+                    return showToast('⚠️ Gere a escala primeiro antes de copiar.');
+                }
+
+                try {
+                    showToast('⏳ Processando captura da escala...');
+                    
+                    const canvas = await html2canvas(elemento, {
+                        backgroundColor: '#ffffff',
+                        scale: 2, 
+                        logging: false,
+                        useCORS: true,
+                        ignoreElements: (el) => el.classList && el.classList.contains('no-print'),
+                        onclone: (clonedDoc) => {
+                            const wrapper = clonedDoc.getElementById('resultado-escala');
+                            if (wrapper) wrapper.classList.add('export-compact');
+                        }
+                    });
+
+                    canvas.toBlob(async (blob) => {
+                        if (!blob) return showToast('❌ Erro ao processar imagem.');
+                        
+                        try {
+                            await navigator.clipboard.write([
+                                new ClipboardItem({ [blob.type]: blob })
+                            ]);
+                            showToast('✅ Sucesso! Imagem copiada. Pode colar (Ctrl+V) no WhatsApp/Teams.');
+                        } catch (clipboardError) {
+                            console.error(clipboardError);
+                            showToast('❌ Segurança: Seu navegador bloqueou a cópia direta. Tente via HTTPS.');
+                        }
+                    }, 'image/png');
+                } catch (error) {
+                    console.error(error);
+                    showToast('❌ Erro crítico ao converter tabela em imagem.');
+                }
+            }
+
+            document.getElementById('participante-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') adicionarParticipante();
+            });
+
+            carregarEstado();
+
+            return {
+                adicionarParticipante, removerParticipante, limparDados,
+                abrirModalAusencia, fecharModal, salvarAusencia,
+                gerarCalendario, copiarComoImagem, removerDiaDaEscala, restaurarDiasExcluidos
+            };
+        })();
+    </script>
+</body>
+</html>
